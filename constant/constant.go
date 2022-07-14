@@ -6,6 +6,8 @@ const (
 	CommandGet  = "get"
 	CommandQuit = "quit"
 	CommandSet  = "set"
+
+	TCP = "tcp"
 )
 
 var (
