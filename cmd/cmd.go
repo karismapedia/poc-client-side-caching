@@ -1,16 +1,70 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/karismapedia/poc-client-side-caching/constant"
 )
 
 func main() {
+	quit := make(chan bool, 1)
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		var input, command string
+		scanner := bufio.NewScanner(os.Stdin)
+
+		fmt.Print("> ")
+
+		for scanner.Scan() {
+			input = scanner.Text()
+
+			sliceOfInput := strings.Fields(strings.ToLower(input))
+			if len(sliceOfInput) < 1 {
+				goto FINISH
+			}
+
+			command = sliceOfInput[0]
+
+			if !constant.Commands[command] {
+				goto FINISH
+			}
+			if command == constant.CommandQuit {
+				goto QUIT
+			}
+
+			fmt.Printf("got command: %s\n", command)
+
+		FINISH:
+			fmt.Print("> ")
+		}
+
+	QUIT:
+		quit <- true
+	}()
+
+	var sigRcv os.Signal
+
+	select {
+	case sigRcv = <-sigCh:
+		fmt.Printf("\ngot signal %v, quitting...\n", sigRcv)
+	case <-quit:
+		fmt.Println("quitting...")
+	}
+
+	fmt.Println("bye")
+}
+
+func init() {
 	c1, err := redis.Dial("tcp", "127.0.0.1:6379")
 	if err != nil {
 		log.Fatal(err)
