@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/gomodule/redigo/redis"
 	"github.com/karismapedia/poc-client-side-caching/constant"
 )
@@ -9,7 +11,7 @@ type repository struct {
 	client1 redis.Conn
 	client2 redis.Conn
 
-	handler func()
+	handler func(interface{})
 }
 
 func Init(address string) (r repository, err error) {
@@ -30,6 +32,34 @@ func Init(address string) (r repository, err error) {
 	return
 }
 
-func (r *repository) AssignHandler(handler func()) {
+func (r *repository) AssignHandler(handler func(interface{})) {
 	r.handler = handler
+}
+
+func (r *repository) Track() (err error) {
+	client1ID, err := r.client1.Do("client", "id")
+	if err != nil {
+		return err
+	}
+
+	r.client1.Send("subscribe", "__redis__:invalidate")
+	r.client1.Flush()
+	go func() {
+		for {
+			payload, err := r.client1.Receive()
+			if err != nil {
+				log.Println("receive err:", err)
+				continue
+			}
+
+			r.handler(payload)
+		}
+	}()
+
+	r.client2.Do("client", "tracking", "on", "redirect", client1ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
