@@ -51,11 +51,6 @@ func (u *usecase) Get(key string) (val interface{}, err error) {
 
 func (u *usecase) Set(key string, val interface{}) (err error) {
 	err = u.redis.Set(key, val)
-	if err != nil {
-		return
-	}
-
-	err = u.memory.Set(key, val)
 	return
 }
 
