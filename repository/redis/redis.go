@@ -1,4 +1,4 @@
-package repository
+package redis
 
 import (
 	"log"
@@ -32,7 +32,7 @@ func Init(address string) (r repository, err error) {
 	return
 }
 
-func (r *repository) AssignHandler(handler func(interface{})) {
+func (r *repository) AssignTrackHandler(handler func(interface{})) {
 	r.handler = handler
 }
 
