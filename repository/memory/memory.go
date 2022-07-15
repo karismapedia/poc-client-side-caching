@@ -11,6 +11,14 @@ type memory struct {
 	mu sync.RWMutex
 }
 
+func Init() (m memory) {
+	m = memory{
+		kv: make(map[string]interface{}),
+		mu: sync.RWMutex{},
+	}
+	return
+}
+
 func (m *memory) Get(key string) (val interface{}, err error) {
 	m.mu.RLock()
 	val, ok := m.kv[key]
