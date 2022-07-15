@@ -7,14 +7,14 @@ import (
 	"github.com/karismapedia/poc-client-side-caching/constant"
 )
 
-type repository struct {
+type redistruct struct {
 	client1 redis.Conn
 	client2 redis.Conn
 
 	handler func(interface{})
 }
 
-func Init(address string) (r repository, err error) {
+func Init(address string) (r redistruct, err error) {
 	c1, err := redis.Dial(constant.TCP, address)
 	if err != nil {
 		return
@@ -25,18 +25,18 @@ func Init(address string) (r repository, err error) {
 		return
 	}
 
-	r = repository{
+	r = redistruct{
 		client1: c1,
 		client2: c2,
 	}
 	return
 }
 
-func (r *repository) AssignTrackHandler(handler func(interface{})) {
+func (r *redistruct) AssignTrackHandler(handler func(interface{})) {
 	r.handler = handler
 }
 
-func (r *repository) Track() (err error) {
+func (r *redistruct) Track() (err error) {
 	client1ID, err := r.client1.Do("client", "id")
 	if err != nil {
 		return err
@@ -62,4 +62,14 @@ func (r *repository) Track() (err error) {
 	}
 
 	return nil
+}
+
+func (r *redistruct) Get(key string) (val interface{}, err error) {
+	val, err = r.client2.Do("get", key)
+	return
+}
+
+func (r *redistruct) Set(key string, val interface{}) (err error) {
+	_, err = r.client2.Do("set", key, val)
+	return
 }
