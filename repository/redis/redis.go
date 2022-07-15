@@ -65,7 +65,10 @@ func (r *redistruct) Track() (err error) {
 }
 
 func (r *redistruct) Get(key string) (val interface{}, err error) {
-	val, err = r.client2.Do("get", key)
+	v, err := r.client2.Do("get", key)
+	if vByte, ok := v.([]byte); ok {
+		val = string(vByte)
+	}
 	return
 }
 
