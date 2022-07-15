@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"errors"
 	"sync"
 )
 
@@ -21,12 +20,9 @@ func Init() (m memory) {
 
 func (m *memory) Get(key string) (val interface{}, err error) {
 	m.mu.RLock()
-	val, ok := m.kv[key]
+	val = m.kv[key]
 	m.mu.RUnlock()
 
-	if !ok {
-		err = errors.New("invalid key")
-	}
 	return
 }
 
